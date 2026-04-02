@@ -1,0 +1,12 @@
+{
+  "name": "arca-proxy",
+  "version": "1.0.0",
+  "description": "Proxy para webservices ARCA (ex AFIP) - Gonzalez del Pino SRL",
+  "main": "arca_proxy.js",
+  "scripts": {
+    "start": "node arca_proxy.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
