@@ -650,7 +650,17 @@ async function feAutorizar(token, sign, cuit, comprobante, entorno) {
   </soapenv:Body>
 </soapenv:Envelope>`;
 
+  // DEBUG: Log comprobante recibido y SOAP XML generado
+  console.log("[FE-DEBUG] Comprobante recibido:", JSON.stringify(comprobante, null, 2));
+  console.log("[FE-DEBUG] concepto value:", comprobante.concepto, "type:", typeof comprobante.concepto);
+  console.log("[FE-DEBUG] fch_serv_desde:", comprobante.fch_serv_desde);
+  console.log("[FE-DEBUG] fch_serv_hasta:", comprobante.fch_serv_hasta);
+  console.log("[FE-DEBUG] fch_vto_pago:", comprobante.fch_vto_pago);
+  console.log("[FE-DEBUG] SOAP XML completo:\n", soapBody);
+
   const response = await soapRequest(url, soapBody, "http://ar.gov.afip.dif.FEV1/FECAESolicitar");
+
+  console.log("[FE-DEBUG] Respuesta ARCA (primeros 3000 chars):", response.substring(0, 3000));
 
   const cae = response.match(/<CAE>(\d+)<\/CAE>/);
   const caeVto = response.match(/<CAEFchVto>(\d+)<\/CAEFchVto>/);
@@ -805,7 +815,7 @@ const server = http.createServer(async (req, res) => {
       const body = await parseBody(req);
       console.log("[TEST] Prueba de conexión recibida");
       const hasCert = !!(body.cert_pem && body.key_pem);
-      respond(res, 200, { ok: true, message: "Proxy ARCA operativo", hasCert, version: "2.0-wspadron5" });
+      respond(res, 200, { ok: true, message: "Proxy ARCA operativo", hasCert, version: "2.1-debug-soap" });
       return;
     }
 
