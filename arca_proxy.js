@@ -628,13 +628,16 @@ async function feAutorizar(token, sign, cuit, comprobante, entorno) {
             <ar:CbteDesde>${comprobante.cbte_nro}</ar:CbteDesde>
             <ar:CbteHasta>${comprobante.cbte_nro}</ar:CbteHasta>
             <ar:CbteFch>${comprobante.cbte_fch}</ar:CbteFch>
+            ${comprobante.concepto >= 2 && comprobante.fch_serv_desde ? `<ar:FchServDesde>${comprobante.fch_serv_desde}</ar:FchServDesde>` : ""}
+            ${comprobante.concepto >= 2 && comprobante.fch_serv_hasta ? `<ar:FchServHasta>${comprobante.fch_serv_hasta}</ar:FchServHasta>` : ""}
+            ${comprobante.concepto >= 2 && comprobante.fch_vto_pago ? `<ar:FchVtoPago>${comprobante.fch_vto_pago}</ar:FchVtoPago>` : ""}
             <ar:ImpTotal>${comprobante.imp_total}</ar:ImpTotal>
             <ar:ImpTotConc>${comprobante.imp_tot_conc || 0}</ar:ImpTotConc>
             <ar:ImpNeto>${comprobante.imp_neto}</ar:ImpNeto>
             <ar:ImpOpEx>${comprobante.imp_op_ex || 0}</ar:ImpOpEx>
             <ar:ImpTrib>${comprobante.imp_trib || 0}</ar:ImpTrib>
             <ar:ImpIVA>${comprobante.imp_iva}</ar:ImpIVA>
-            ${comprobante.fch_vto_pago ? `<ar:FchVtoPago>${comprobante.fch_vto_pago}</ar:FchVtoPago>` : ""}
+            
             <ar:MonId>${comprobante.mon_id || "PES"}</ar:MonId>
             <ar:MonCotiz>${comprobante.mon_cotiz || 1}</ar:MonCotiz>
             ${ivaXml}
