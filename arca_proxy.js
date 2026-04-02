@@ -115,6 +115,7 @@ function soapRequest(url, soapBody, soapAction) {
       path: parsed.pathname + parsed.search,
       method: "POST",
       headers,
+            ciphers: "DEFAULT:@SECLEVEL=0",
     };
     const req = https.request(options, (res) => {
       let data = "";
