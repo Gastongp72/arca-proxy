@@ -1,26 +1,26 @@
 /**
- * arca_proxy.js — Proxy local para webservices ARCA (ex AFIP)
+ * arca_proxy.js â Proxy local para webservices ARCA (ex AFIP)
  *
  * Uso: node arca_proxy.js
  * Puerto: 3838 (configurable con PORT=xxxx)
  *
  * Endpoints:
- *   POST /api/padron        → WSpadron5: consulta contribuyente por CUIT
- *   POST /api/padron/batch  → WSpadron5: validación masiva de CUITs
- *   POST /api/fe/ultimo     → WSFEv1: último comprobante autorizado
- *   POST /api/fe/autorizar  → WSFEv1: solicitar CAE
- *   POST /api/test          → Prueba de conexión
+ *   POST /api/padron        â WSpadron5: consulta contribuyente por CUIT
+ *   POST /api/padron/batch  â WSpadron5: validaciÃ³n masiva de CUITs
+ *   POST /api/fe/ultimo     â WSFEv1: Ãºltimo comprobante autorizado
+ *   POST /api/fe/autorizar  â WSFEv1: solicitar CAE
+ *   POST /api/test          â Prueba de conexiÃ³n
  *
  *   === Leaf Agriculture (FieldView) ===
- *   POST /api/leaf/login        → Autenticar con Leaf y obtener JWT
- *   POST /api/leaf/fields       → Obtener campos/lotes del usuario
- *   POST /api/leaf/operations   → Obtener operaciones de un campo
- *   POST /api/leaf/cfv/connect  → Vincular Climate FieldView
+ *   POST /api/leaf/login        â Autenticar con Leaf y obtener JWT
+ *   POST /api/leaf/fields       â Obtener campos/lotes del usuario
+ *   POST /api/leaf/operations   â Obtener operaciones de un campo
+ *   POST /api/leaf/cfv/connect  â Vincular Climate FieldView
  *
- * Requiere: Node.js (solo módulos nativos: http, https, crypto)
- * No necesita npm install — usa http nativo + openssl del sistema
+ * Requiere: Node.js (solo mÃ³dulos nativos: http, https, crypto)
+ * No necesita npm install â usa http nativo + openssl del sistema
  *
- * ARCA CUIT consultante: 30-70857746-0 (González del Pino SRL)
+ * ARCA CUIT consultante: 30-70857746-0 (GonzÃ¡lez del Pino SRL)
  */
 
 const http = require("http");
@@ -31,9 +31,9 @@ const pathMod = require("path");
 const { URL } = require("url");
 
 const PORT = process.env.PORT || 3838;
-const BASE_DIR = __dirname; // carpeta donde está arca_proxy.js y erp_tango.html
+const BASE_DIR = __dirname; // carpeta donde estÃ¡ arca_proxy.js y erp_tango.html
 
-// MIME types para servir archivos estáticos
+// MIME types para servir archivos estÃ¡ticos
 const MIME = {
   ".html": "text/html; charset=utf-8",
   ".js": "application/javascript; charset=utf-8",
@@ -129,7 +129,7 @@ function soapRequest(url, soapBody, soapAction) {
 }
 
 // ============================================================================
-// WSAA — Login CMS (obtener token/sign para un servicio)
+// WSAA â Login CMS (obtener token/sign para un servicio)
 // ============================================================================
 function createCMS(cert_pem, key_pem, service, entorno) {
   const now = new Date();
@@ -218,7 +218,7 @@ async function loginCMS(cert_pem, key_pem, service, entorno) {
   // Guardar respuesta para debug
   try { fs.writeFileSync(pathMod.join(BASE_DIR, `debug_wsaa_${service}.xml`), response); } catch(e) {}
 
-  // Parsear respuesta — buscar token/sign con regex flexible (puede estar escapado como XML entities)
+  // Parsear respuesta â buscar token/sign con regex flexible (puede estar escapado como XML entities)
   let tokenMatch = response.match(/<token>([^<]+)<\/token>/);
   let signMatch = response.match(/<sign>([^<]+)<\/sign>/);
 
@@ -235,7 +235,7 @@ async function loginCMS(cert_pem, key_pem, service, entorno) {
 
   if (!tokenMatch || !signMatch) {
     const faultMatch = response.match(/<faultstring>([^<]+)<\/faultstring>/);
-    throw new Error("WSAA login falló: " + (faultMatch ? faultMatch[1] : "Respuesta inesperada"));
+    throw new Error("WSAA login fallÃ³: " + (faultMatch ? faultMatch[1] : "Respuesta inesperada"));
   }
 
   const result = { token: tokenMatch[1], sign: signMatch[1] };
@@ -249,12 +249,12 @@ async function loginCMS(cert_pem, key_pem, service, entorno) {
 }
 
 // ============================================================================
-// WSpadron5 — Consulta de contribuyente
+// WSpadron5 â Consulta de contribuyente
 // ============================================================================
 async function consultarPadron(cuit_consultante, cuit_consulta, token, sign, entorno, servicio) {
   const url = PADRON5_SOAP_URL[entorno] || PADRON5_SOAP_URL.testing;
 
-  // ws_sr_constancia_inscripcion usa getPersona_v2, los demás usan getPersona
+  // ws_sr_constancia_inscripcion usa getPersona_v2, los demÃ¡s usan getPersona
   const useV2 = servicio === "ws_sr_constancia_inscripcion";
   const method = useV2 ? "getPersona_v2" : "getPersona";
   const soapAction = useV2 ? "http://a5.soap.ws.server.puc.sr/getPersona_v2" : "http://a5.soap.ws.server.puc.sr/getPersona";
@@ -320,7 +320,7 @@ async function consultarPadron(cuit_consultante, cuit_consulta, token, sign, ent
   if (provincia) domParts.push(provincia);
   if (codPostal) domParts.push(`CP ${codPostal}`);
 
-  // Condición IVA
+  // CondiciÃ³n IVA
   const impuestos = extractAll("idImpuesto");
   const estados = extractAll("estado");
   // IVA = impuesto 30, Monotributo = 20
@@ -361,7 +361,7 @@ async function consultarPadron(cuit_consultante, cuit_consulta, token, sign, ent
 }
 
 // ============================================================================
-// CONSULTA PÚBLICA DE PADRÓN (fallback sin ws_sr_padron_a5)
+// CONSULTA PÃBLICA DE PADRÃN (fallback sin ws_sr_padron_a5)
 // ============================================================================
 
 // Helper: HTTPS GET/POST que devuelve { statusCode, headers, body }
@@ -402,13 +402,13 @@ async function consultarCuitOnline(cuit) {
     // Guardar para debug
     try { fs.writeFileSync(pathMod.join(BASE_DIR, "debug_cuitonline.html"), html); } catch(e) {}
 
-    // Extraer razón social — CuitOnline usa <h4> o <div class="denominacion">
+    // Extraer razÃ³n social â CuitOnline usa <h4> o <div class="denominacion">
     let razon_social = "";
     const rzPatterns = [
       /<h4[^>]*>([^<]+)<\/h4>/i,
       /class="[^"]*denominacion[^"]*"[^>]*>([^<]+)/i,
-      /Denominaci[oó]n[^<]*<[^>]*>([^<]+)/i,
-      /Raz[oó]n\s*Social[^<]*<[^>]*>([^<]+)/i,
+      /Denominaci[oÃ³]n[^<]*<[^>]*>([^<]+)/i,
+      /Raz[oÃ³]n\s*Social[^<]*<[^>]*>([^<]+)/i,
       /Apellido\s*y\s*Nombre[^<]*<[^>]*>([^<]+)/i,
       /<title>([^<]+?)[\s-]*CUIT/i,
     ];
@@ -420,9 +420,9 @@ async function consultarCuitOnline(cuit) {
       }
     }
 
-    if (!razon_social) return { ok: false, error: "No se encontró razón social en CuitOnline" };
+    if (!razon_social) return { ok: false, error: "No se encontrÃ³ razÃ³n social en CuitOnline" };
 
-    // Condición IVA
+    // CondiciÃ³n IVA
     let condicion_iva = "CF";
     const ivaMatch = html.match(/IVA[^<]*<[^>]*>([^<]+)/i)
       || html.match(/Responsable\s*Inscripto/i)
@@ -437,7 +437,7 @@ async function consultarCuitOnline(cuit) {
 
     // Domicilio
     let domicilio = "";
-    const domMatch = html.match(/Direcci[oó]n[^<]*<[^>]*>([^<]+)/i) || html.match(/Domicilio[^<]*<[^>]*>([^<]+)/i);
+    const domMatch = html.match(/Direcci[oÃ³]n[^<]*<[^>]*>([^<]+)/i) || html.match(/Domicilio[^<]*<[^>]*>([^<]+)/i);
     if (domMatch) domicilio = domMatch[1].trim();
 
     let localidad = "", provincia = "";
@@ -452,11 +452,11 @@ async function consultarCuitOnline(cuit) {
   }
 }
 
-// Fuente 2: Scraping ARCA constancia (con sesión y cookies)
+// Fuente 2: Scraping ARCA constancia (con sesiÃ³n y cookies)
 async function consultarConstanciaARCA(cuit) {
   console.log(`[PADRON-ARCA] Consultando CUIT ${cuit}...`);
   try {
-    // Paso 1: GET página principal para cookie de sesión
+    // Paso 1: GET pÃ¡gina principal para cookie de sesiÃ³n
     const res1 = await httpsReq({
       hostname: "seti.afip.gob.ar",
       path: "/padron-puc-constancia-internet/ConsultaConstanciaAction.do",
@@ -466,7 +466,7 @@ async function consultarConstanciaARCA(cuit) {
     const cookies = (res1.headers["set-cookie"] || []).map(c => c.split(";")[0]).join("; ");
     console.log(`[PADRON-ARCA] Paso 1: HTTP ${res1.statusCode}, cookies: ${cookies.substring(0, 60)}`);
 
-    // Paso 2: GET iframe JSP para mantener sesión y descubrir form action
+    // Paso 2: GET iframe JSP para mantener sesiÃ³n y descubrir form action
     const res2 = await httpsReq({
       hostname: "seti.afip.gob.ar",
       path: "/padron-puc-constancia-internet/jsp/Constancia.jsp",
@@ -500,13 +500,13 @@ async function consultarConstanciaARCA(cuit) {
     try { fs.writeFileSync(pathMod.join(BASE_DIR, "debug_constancia.html"), res3.body); } catch(e) {}
 
     const html = res3.body;
-    // Buscar razón social
+    // Buscar razÃ³n social
     let razon_social = "";
     const patterns = [
-      /Raz[oó]n\s*Social[^<]*<[^>]*>([^<]+)/i,
+      /Raz[oÃ³]n\s*Social[^<]*<[^>]*>([^<]+)/i,
       /Apellido\s*y\s*Nombre[^<]*<[^>]*>([^<]+)/i,
       /denominacion[^<]*>([^<]+)/i,
-      /class="[^"]*celdaDatos[^"]*"[^>]*>\s*([A-ZÁÉÍÓÚÑ][\w\s,.'-]{3,})/,
+      /class="[^"]*celdaDatos[^"]*"[^>]*>\s*([A-ZÃÃÃÃÃÃ][\w\s,.'-]{3,})/,
     ];
     for (const p of patterns) {
       const m = html.match(p);
@@ -529,25 +529,25 @@ async function consultarConstanciaARCA(cuit) {
   }
 }
 
-// Función principal: intenta múltiples fuentes
+// FunciÃ³n principal: intenta mÃºltiples fuentes
 async function consultarConstanciaPublica(cuit) {
-  console.log(`[PADRON] Intentando fuentes públicas para CUIT ${cuit}...`);
+  console.log(`[PADRON] Intentando fuentes pÃºblicas para CUIT ${cuit}...`);
 
-  // Intento 1: CuitOnline (más confiable, no requiere sesión)
+  // Intento 1: CuitOnline (mÃ¡s confiable, no requiere sesiÃ³n)
   const co = await consultarCuitOnline(cuit);
   if (co.ok) return co;
-  console.log(`[PADRON] CuitOnline falló: ${co.error}`);
+  console.log(`[PADRON] CuitOnline fallÃ³: ${co.error}`);
 
-  // Intento 2: ARCA constancia con sesión
+  // Intento 2: ARCA constancia con sesiÃ³n
   const arca = await consultarConstanciaARCA(cuit);
   if (arca.ok) return arca;
-  console.log(`[PADRON] ARCA HTML falló: ${arca.error}`);
+  console.log(`[PADRON] ARCA HTML fallÃ³: ${arca.error}`);
 
   return { ok: false, error: `No se pudo consultar CUIT ${cuit}. CuitOnline: ${co.error}. ARCA: ${arca.error}. Habilite ws_sr_padron_a5 para mejores resultados.` };
 }
 
 // ============================================================================
-// WSFEv1 — Factura Electrónica
+// WSFEv1 â Factura ElectrÃ³nica
 // ============================================================================
 async function feUltimoAutorizado(token, sign, cuit, pto_vta, cbte_tipo, entorno) {
   const url = WSFE_URL[entorno] || WSFE_URL.testing;
@@ -569,6 +569,53 @@ async function feUltimoAutorizado(token, sign, cuit, pto_vta, cbte_tipo, entorno
   const response = await soapRequest(url, soapBody, "http://ar.gov.afip.dif.FEV1/FECompUltimoAutorizado");
   const cbteNro = response.match(/<CbteNro>(\d+)<\/CbteNro>/);
   return { cbteNro: cbteNro ? parseInt(cbteNro[1]) : 0 };
+}
+
+async function feConsultar(token, sign, cuit, pto_vta, cbte_tipo, cbte_nro, entorno) {
+  const url = WSFE_URL[entorno] || WSFE_URL.testing;
+  const soapBody = `<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ar="http://ar.gov.afip.dif.FEV1/">
+  <soapenv:Body>
+    <ar:FECompConsultar>
+      <ar:Auth>
+        <ar:Token>${token}</ar:Token>
+        <ar:Sign>${sign}</ar:Sign>
+        <ar:Cuit>${cuit}</ar:Cuit>
+      </ar:Auth>
+      <ar:FeCompConsReq>
+        <ar:CbteTipo>${cbte_tipo}</ar:CbteTipo>
+        <ar:CbteNro>${cbte_nro}</ar:CbteNro>
+        <ar:PtoVta>${pto_vta}</ar:PtoVta>
+      </ar:FeCompConsReq>
+    </ar:FECompConsultar>
+  </soapenv:Body>
+</soapenv:Envelope>`;
+  const response = await soapRequest(url, soapBody, "http://ar.gov.afip.dif.FEV1/FECompConsultar");
+  console.log("[FE-CONSULTAR] Respuesta:", response.substring(0, 3000));
+  const get = (tag) => { const m = response.match(new RegExp(`<${tag}>([^<]*)</${tag}>`)); return m ? m[1] : null; };
+  const concepto = get("Concepto");
+  const docTipo = get("DocTipo");
+  const docNro = get("DocNro");
+  const cbteDesde = get("CbteDesde");
+  const cbteFch = get("CbteFch");
+  const impTotal = get("ImpTotal");
+  const impNeto = get("ImpNeto");
+  const impIVA = get("ImpIVA");
+  const impOpEx = get("ImpOpEx");
+  const impTotConc = get("ImpTotConc");
+  const cae = get("CodAutorizacion");
+  const caeVto = get("FchVto");
+  const fchServDesde = get("FchServDesde");
+  const fchServHasta = get("FchServHasta");
+  const resultado = get("Resultado");
+  if (!cae) return { ok: false, error: "Comprobante no encontrado", raw: response.substring(0, 2000) };
+  return {
+    ok: true, concepto, doc_tipo: docTipo, doc_nro: docNro, cbte_nro: cbteDesde,
+    cbte_fch: cbteFch, imp_total: impTotal, imp_neto: impNeto, imp_iva: impIVA,
+    imp_op_ex: impOpEx, imp_tot_conc: impTotConc, cae, cae_vto: caeVto,
+    fch_serv_desde: fchServDesde, fch_serv_hasta: fchServHasta,
+    resultado, raw: response.substring(0, 2000)
+  };
 }
 
 async function feAutorizar(token, sign, cuit, comprobante, entorno) {
@@ -682,7 +729,7 @@ async function feAutorizar(token, sign, cuit, comprobante, entorno) {
 }
 
 // ============================================================================
-// LEAF AGRICULTURE API — Integración con FieldView
+// LEAF AGRICULTURE API â IntegraciÃ³n con FieldView
 // ============================================================================
 const LEAF_API = "https://api.withleaf.io";
 
@@ -735,19 +782,19 @@ async function leafLogin(username, password) {
     username, password, rememberMe: true
   });
   if (result._error) {
-    throw new Error("Leaf login falló: " + JSON.stringify(result.detail));
+    throw new Error("Leaf login fallÃ³: " + JSON.stringify(result.detail));
   }
   leafToken = result.id_token;
-  leafTokenExpiry = Date.now() + (29 * 24 * 60 * 60 * 1000); // 29 días
-  console.log(`[LEAF] Token obtenido, expira en 30 días`);
+  leafTokenExpiry = Date.now() + (29 * 24 * 60 * 60 * 1000); // 29 dÃ­as
+  console.log(`[LEAF] Token obtenido, expira en 30 dÃ­as`);
   return { ok: true, token: leafToken };
 }
 
 // ============================================================================
-// PROTECCIÓN CONTRA CRASHES
+// PROTECCIÃN CONTRA CRASHES
 // ============================================================================
 process.on("uncaughtException", (err) => {
-  console.error("[CRASH EVITADO] Excepción no capturada:", err.message);
+  console.error("[CRASH EVITADO] ExcepciÃ³n no capturada:", err.message);
 });
 process.on("unhandledRejection", (err) => {
   console.error("[CRASH EVITADO] Promesa rechazada:", err);
@@ -763,7 +810,7 @@ const server = http.createServer(async (req, res) => {
   const timeout = setTimeout(() => {
     if (!res.writableEnded && !res.headersSent) {
       console.log(`[HTTP] TIMEOUT en ${req.method} ${req.url}`);
-      respond(res, 504, { ok: false, error: "Timeout: la solicitud tardó demasiado" });
+      respond(res, 504, { ok: false, error: "Timeout: la solicitud tardÃ³ demasiado" });
     }
   }, 90000);
   res.on("finish", () => clearTimeout(timeout));
@@ -774,13 +821,13 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // ── Endpoint de prueba rápida (GET) ──
+  // ââ Endpoint de prueba rÃ¡pida (GET) ââ
   if (req.method === "GET" && req.url === "/api/ping") {
     respond(res, 200, { ok: true, time: new Date().toISOString(), msg: "Proxy ARCA operativo" });
     return;
   }
 
-  // ── Servidor de archivos estáticos (GET) ──
+  // ââ Servidor de archivos estÃ¡ticos (GET) ââ
   if (req.method === "GET" && !req.url.startsWith("/api/")) {
     let filePath = req.url.split("?")[0];
     if (filePath === "/") filePath = "/erp_tango.html";
@@ -813,13 +860,13 @@ const server = http.createServer(async (req, res) => {
     // Test endpoint
     if (req.url === "/api/test" && req.method === "POST") {
       const body = await parseBody(req);
-      console.log("[TEST] Prueba de conexión recibida");
+      console.log("[TEST] Prueba de conexiÃ³n recibida");
       const hasCert = !!(body.cert_pem && body.key_pem);
       respond(res, 200, { ok: true, message: "Proxy ARCA operativo", hasCert, version: "2.1-debug-soap" });
       return;
     }
 
-    // Padrón — consulta individual
+    // PadrÃ³n â consulta individual
     if (req.url === "/api/padron" && req.method === "POST") {
       const body = await parseBody(req);
       const { cuit_consulta, cert_pem, key_pem, cuit, entorno } = body;
@@ -831,7 +878,7 @@ const server = http.createServer(async (req, res) => {
 
       const cuitClean = (cuit || "").replace(/-/g, "");
 
-      // Intentar múltiples servicios WSAA del padrón
+      // Intentar mÃºltiples servicios WSAA del padrÃ³n
       if (cert_pem && key_pem) {
         const servicios = [
           "ws_sr_constancia_inscripcion",
@@ -851,24 +898,24 @@ const server = http.createServer(async (req, res) => {
               respond(res, 200, data);
               return;
             }
-            console.log(`[PADRON] ${servicio} respondió pero sin datos: ${data.error}`);
+            console.log(`[PADRON] ${servicio} respondiÃ³ pero sin datos: ${data.error}`);
           } catch (err) {
             const msg = err.message || "";
-            console.log(`[PADRON] ${servicio} falló: ${msg}`);
-            // Si es error de autorización, probar siguiente servicio
+            console.log(`[PADRON] ${servicio} fallÃ³: ${msg}`);
+            // Si es error de autorizaciÃ³n, probar siguiente servicio
             if (msg.includes("no autorizado") || msg.includes("Computador no autorizado")) continue;
-            // Otro tipo de error, también probar siguiente
+            // Otro tipo de error, tambiÃ©n probar siguiente
             continue;
           }
         }
-        console.log(`[PADRON] Ningún servicio WSAA funcionó.`);
+        console.log(`[PADRON] NingÃºn servicio WSAA funcionÃ³.`);
       }
 
-      respond(res, 200, { ok: false, error: "Certificado no autorizado para consultar padrón. En ARCA con clave fiscal: busque 'Administrador de Relaciones' > Nueva relación > AFIP > Web Services > seleccione 'Consulta Padrón Alcance 5'." });
+      respond(res, 200, { ok: false, error: "Certificado no autorizado para consultar padrÃ³n. En ARCA con clave fiscal: busque 'Administrador de Relaciones' > Nueva relaciÃ³n > AFIP > Web Services > seleccione 'Consulta PadrÃ³n Alcance 5'." });
       return;
     }
 
-    // Padrón — validación masiva
+    // PadrÃ³n â validaciÃ³n masiva
     if (req.url === "/api/padron/batch" && req.method === "POST") {
       const body = await parseBody(req);
       const { cuits, cert_pem, key_pem, cuit, entorno } = body;
@@ -909,7 +956,7 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    // FE — Último comprobante
+    // FE â Ãltimo comprobante
     if (req.url === "/api/fe/ultimo" && req.method === "POST") {
       const body = await parseBody(req);
       const { cert_pem, key_pem, cuit, entorno, pto_vta, cbte_tipo } = body;
@@ -923,7 +970,7 @@ const server = http.createServer(async (req, res) => {
         const cuitClean = (cuit || "").replace(/-/g, "");
         const { token, sign } = await loginCMS(cert_pem, key_pem, "wsfe", entorno || "testing");
         const result = await feUltimoAutorizado(token, sign, cuitClean, pto_vta, cbte_tipo, entorno || "testing");
-        console.log(`[FE] Último comprobante PV=${pto_vta} Tipo=${cbte_tipo}: ${result.cbteNro}`);
+        console.log(`[FE] Ãltimo comprobante PV=${pto_vta} Tipo=${cbte_tipo}: ${result.cbteNro}`);
         respond(res, 200, result);
       } catch (err) {
         console.error(`[FE] Error:`, err.message);
@@ -932,7 +979,25 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    // FE — Autorizar (solicitar CAE)
+    // FE — Consultar comprobante
+    if (req.url === "/api/fe/consultar" && req.method === "POST") {
+      const body = await parseBody(req);
+      const { cert_pem, key_pem, cuit, entorno, pto_vta, cbte_tipo, cbte_nro } = body;
+      if (!cert_pem || !key_pem) { respond(res, 400, { ok: false, error: "Se requieren cert_pem y key_pem" }); return; }
+      try {
+        const cuitClean = (cuit || "").replace(/-/g, "");
+        const { token, sign } = await loginCMS(cert_pem, key_pem, "wsfe", entorno || "testing");
+        const result = await feConsultar(token, sign, cuitClean, pto_vta, cbte_tipo, cbte_nro, entorno || "testing");
+        console.log("[FE] Consultar PV=" + pto_vta + " Tipo=" + cbte_tipo + " Nro=" + cbte_nro + ":", result.ok ? "OK CAE=" + result.cae : "ERROR");
+        respond(res, 200, result);
+      } catch (err) {
+        console.error("[FE] Error consultar:", err.message);
+        respond(res, 500, { ok: false, error: err.message });
+      }
+      return;
+    }
+
+    // FE â Autorizar (solicitar CAE)
     if (req.url === "/api/fe/autorizar" && req.method === "POST") {
       const body = await parseBody(req);
       const { cert_pem, key_pem, cuit, entorno, comprobante } = body;
@@ -946,7 +1011,7 @@ const server = http.createServer(async (req, res) => {
         const cuitClean = (cuit || "").replace(/-/g, "");
         const { token, sign } = await loginCMS(cert_pem, key_pem, "wsfe", entorno || "testing");
         const result = await feAutorizar(token, sign, cuitClean, comprobante, entorno || "testing");
-        console.log(`[FE] CAE solicitado: ${result.ok ? result.cae : "ERROR — " + (result.errores || result.observaciones)}`);
+        console.log(`[FE] CAE solicitado: ${result.ok ? result.cae : "ERROR â " + (result.errores || result.observaciones)}`);
         respond(res, 200, result);
       } catch (err) {
         console.error(`[FE] Error:`, err.message);
@@ -959,7 +1024,7 @@ const server = http.createServer(async (req, res) => {
     // LEAF AGRICULTURE ENDPOINTS
     // ================================================================
 
-    // Leaf — Login
+    // Leaf â Login
     if (req.url === "/api/leaf/login" && req.method === "POST") {
       const body = await parseBody(req);
       const { username, password } = body;
@@ -976,7 +1041,7 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    // Leaf — Crear usuario Leaf (grower)
+    // Leaf â Crear usuario Leaf (grower)
     if (req.url === "/api/leaf/users" && req.method === "POST") {
       const body = await parseBody(req);
       const token = body.token || leafToken;
@@ -996,7 +1061,7 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    // Leaf — Listar usuarios Leaf
+    // Leaf â Listar usuarios Leaf
     if (req.url === "/api/leaf/users" && req.method === "GET") {
       const token = leafToken;
       if (!token) { respond(res, 401, { ok: false, error: "Sin token Leaf" }); return; }
@@ -1010,7 +1075,7 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    // Leaf — Vincular Climate FieldView
+    // Leaf â Vincular Climate FieldView
     if (req.url === "/api/leaf/cfv/connect" && req.method === "POST") {
       const body = await parseBody(req);
       const token = body.token || leafToken;
@@ -1033,7 +1098,7 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    // Leaf — Obtener campos/lotes
+    // Leaf â Obtener campos/lotes
     if (req.url.startsWith("/api/leaf/fields") && req.method === "POST") {
       const body = await parseBody(req);
       const token = body.token || leafToken;
@@ -1051,7 +1116,7 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    // Leaf — Obtener operaciones de un campo
+    // Leaf â Obtener operaciones de un campo
     if (req.url.startsWith("/api/leaf/operations") && req.method === "POST") {
       const body = await parseBody(req);
       const token = body.token || leafToken;
@@ -1074,7 +1139,7 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    // Leaf — Obtener resumen de una operación
+    // Leaf â Obtener resumen de una operaciÃ³n
     if (req.url.startsWith("/api/leaf/operation/") && req.method === "POST") {
       const body = await parseBody(req);
       const token = body.token || leafToken;
@@ -1100,20 +1165,20 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`\n╔══════════════════════════════════════════════════════╗`);
-  console.log(`║    ARCA Proxy — Buffer Química ERP                   ║`);
-  console.log(`║    Puerto: ${PORT}                                      ║`);
-  console.log(`║    WSpadron5 + WSFEv1 + Leaf Agriculture + Web         ║`);
-  console.log(`╚══════════════════════════════════════════════════════╝\n`);
-  console.log(`  ► Abrir ERP en el navegador: http://localhost:${PORT}\n`);
+  console.log(`\nââââââââââââââââââââââââââââââââââââââââââââââââââââââââ`);
+  console.log(`â    ARCA Proxy â Buffer QuÃ­mica ERP                   â`);
+  console.log(`â    Puerto: ${PORT}                                      â`);
+  console.log(`â    WSpadron5 + WSFEv1 + Leaf Agriculture + Web         â`);
+  console.log(`ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ\n`);
+  console.log(`  âº Abrir ERP en el navegador: http://localhost:${PORT}\n`);
   console.log(`Endpoints API:`);
-  console.log(`  POST /api/test             — Prueba de conexión`);
-  console.log(`  POST /api/padron           — Consulta CUIT (WSpadron5)`);
-  console.log(`  POST /api/padron/batch     — Validación masiva de CUITs`);
-  console.log(`  POST /api/fe/ultimo        — Último comprobante (WSFEv1)`);
-  console.log(`  POST /api/fe/autorizar     — Solicitar CAE (WSFEv1)`);
-  console.log(`  POST /api/leaf/login       — Login Leaf Agriculture`);
-  console.log(`  POST /api/leaf/fields      — Campos (Leaf/FieldView)`);
-  console.log(`  POST /api/leaf/operations  — Operaciones de campo`);
-  console.log(`  POST /api/leaf/cfv/connect — Vincular FieldView\n`);
+  console.log(`  POST /api/test             â Prueba de conexiÃ³n`);
+  console.log(`  POST /api/padron           â Consulta CUIT (WSpadron5)`);
+  console.log(`  POST /api/padron/batch     â ValidaciÃ³n masiva de CUITs`);
+  console.log(`  POST /api/fe/ultimo        â Ãltimo comprobante (WSFEv1)`);
+  console.log(`  POST /api/fe/autorizar     â Solicitar CAE (WSFEv1)`);
+  console.log(`  POST /api/leaf/login       â Login Leaf Agriculture`);
+  console.log(`  POST /api/leaf/fields      â Campos (Leaf/FieldView)`);
+  console.log(`  POST /api/leaf/operations  â Operaciones de campo`);
+  console.log(`  POST /api/leaf/cfv/connect â Vincular FieldView\n`);
 });
